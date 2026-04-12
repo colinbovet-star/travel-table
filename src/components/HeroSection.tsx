@@ -19,9 +19,6 @@ export default function HeroSection() {
           </radialGradient>
         </defs>
 
-        {/* Outer circle */}
-        <circle cx="250" cy="250" r="220" fill="none" stroke="var(--pink)" strokeWidth="1" strokeOpacity="0.25" />
-
         {/* Latitude lines */}
         <g clipPath="url(#globe-clip)" fill="none" stroke="var(--pink)" strokeWidth="0.8" strokeOpacity="0.18">
           {[-66, -40, -20, 0, 20, 40, 66].map((lat) => {
