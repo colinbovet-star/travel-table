@@ -66,7 +66,7 @@ nav {
   min-height: 100vh;
   display: grid; grid-template-columns: 1fr 1fr;
   align-items: center;
-  padding: 120px 48px 80px;
+  padding: 120px max(48px, calc((100% - 1100px) / 2)) 80px;
   gap: 60px;
   position: relative;
   overflow: hidden;
@@ -410,7 +410,7 @@ footer {
 @media (max-width: 900px) {
   nav { padding: 16px 24px; }
   .nav-links { display: none; }
-  .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; gap: 40px; }
+  .hero { grid-template-columns: 1fr; padding: 100px 24px 60px !important; gap: 40px; }
   .hero::before { display: none; }
   .hero-visual { display: flex; justify-content: center; }
   .hero-card-stack { width: 300px; height: 420px; }
