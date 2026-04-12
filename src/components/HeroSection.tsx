@@ -12,11 +12,6 @@ export default function HeroSection() {
           <clipPath id="globe-clip">
             <circle cx="250" cy="250" r="220" />
           </clipPath>
-          <radialGradient id="globe-fade" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="transparent" />
-            <stop offset="80%" stopColor="transparent" />
-            <stop offset="100%" stopColor="var(--cream, #faf8f5)" />
-          </radialGradient>
         </defs>
 
         {/* Latitude lines */}
@@ -44,8 +39,7 @@ export default function HeroSection() {
           ))}
         </g>
 
-        {/* Fade vignette so it bleeds into the background */}
-        <circle cx="250" cy="250" r="220" fill="url(#globe-fade)" />
+
       </svg>
 
       <div className="hero-content">
