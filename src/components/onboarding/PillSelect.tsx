@@ -46,7 +46,7 @@ export default function PillSelect({
               type="button"
               onClick={() => toggle(option)}
               className={`
-                px-5 py-2.5 rounded-full text-sm font-medium border transition-all duration-150
+                px-6 py-3 rounded-full text-sm font-medium border transition-all duration-150
                 ${isSelected
                   ? 'bg-[var(--green)] border-[var(--green)] text-white'
                   : 'bg-[var(--cream)] border-[var(--green-mid)] text-[var(--text-mid)] hover:bg-[var(--cream-dark)] hover:border-[var(--green)] hover:text-[var(--green)]'
