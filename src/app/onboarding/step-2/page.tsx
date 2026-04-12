@@ -17,12 +17,16 @@ const schema = z.object({
   budget_range: z.string().min(1, 'Please choose an option'),
   trip_type_tags: z.array(z.string()).min(1, 'Please select at least one trip type'),
   looking_for: z.array(z.string()).optional(),
+  travel_frequency: z.string().min(1, 'Please choose an option'),
+  group_size_pref: z.string().min(1, 'Please choose an option'),
 })
 
 type FormData = z.infer<typeof schema>
 
 const SOLO_OPTIONS = ["I love solo travel", "I prefer a companion", "Either works for me"]
 const BUDGET_OPTIONS = ["Budget", "Mid-range", "Flexible", "Luxury"]
+const TRAVEL_FREQUENCY_OPTIONS = ["0–1 trips", "2–4 trips", "5–8 trips", "Nomadic"]
+const GROUP_SIZE_OPTIONS = ["Solo", "1–3 people", "4–5 people", "6–10 people", "More than 10"]
 const TRIP_TYPE_OPTIONS = [
   "Beach & sun", "Culture & history", "Food & wine", "Hiking & nature",
   "City breaks", "Wellness & retreat", "Adventure sports", "Off the beaten path",
@@ -51,6 +55,8 @@ export default function Step2Page() {
       budget_range: '',
       trip_type_tags: [],
       looking_for: [],
+      travel_frequency: '',
+      group_size_pref: '',
     },
   })
 
@@ -62,7 +68,7 @@ export default function Step2Page() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('travel_style_score, solo_comfort, budget_range, trip_type_tags, looking_for')
+        .select('travel_style_score, solo_comfort, budget_range, trip_type_tags, looking_for, travel_frequency, group_size_pref')
         .eq('id', user.id)
         .single()
 
@@ -72,6 +78,8 @@ export default function Step2Page() {
         if (data.budget_range) setValue('budget_range', data.budget_range)
         if (data.trip_type_tags?.length) setValue('trip_type_tags', data.trip_type_tags)
         if (data.looking_for?.length) setValue('looking_for', data.looking_for)
+        if (data.travel_frequency) setValue('travel_frequency', data.travel_frequency)
+        if (data.group_size_pref) setValue('group_size_pref', data.group_size_pref)
       }
     }
     load()
@@ -91,6 +99,8 @@ export default function Step2Page() {
         budget_range: data.budget_range,
         trip_type_tags: data.trip_type_tags,
         looking_for: data.looking_for || [],
+        travel_frequency: data.travel_frequency,
+        group_size_pref: data.group_size_pref,
       })
       .eq('id', user.id)
 
@@ -180,6 +190,40 @@ export default function Step2Page() {
                 multiSelect
                 minSelect={1}
                 error={errors.trip_type_tags?.message}
+              />
+            )}
+          />
+        </div>
+
+        {/* Travel frequency */}
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-[var(--text)]">How often do you travel per year?</p>
+          <Controller
+            name="travel_frequency"
+            control={control}
+            render={({ field }) => (
+              <PillSelect
+                options={TRAVEL_FREQUENCY_OPTIONS}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.travel_frequency?.message}
+              />
+            )}
+          />
+        </div>
+
+        {/* Group size preference */}
+        <div className="flex flex-col gap-3">
+          <p className="text-sm font-medium text-[var(--text)]">What size group do you like to travel with?</p>
+          <Controller
+            name="group_size_pref"
+            control={control}
+            render={({ field }) => (
+              <PillSelect
+                options={GROUP_SIZE_OPTIONS}
+                value={field.value}
+                onChange={field.onChange}
+                error={errors.group_size_pref?.message}
               />
             )}
           />

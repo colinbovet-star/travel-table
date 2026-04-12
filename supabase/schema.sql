@@ -23,6 +23,8 @@ create table profiles (
   budget_range text,
   trip_type_tags text[],
   looking_for text[],
+  travel_frequency text,
+  group_size_pref text,
 
   -- Step 3
   dream_regions text[],
