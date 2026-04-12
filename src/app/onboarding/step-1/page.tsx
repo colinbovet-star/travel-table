@@ -14,7 +14,7 @@ import Button from '@/components/ui/Button'
 
 const schema = z.object({
   display_name: z.string().min(1, 'Display name is required').max(50),
-  location: z.string().min(1, 'Location is required').max(100),
+  location: z.string().min(1, 'Please enter where you are based').max(100),
   age: z.number({ error: 'Please enter your age' }).min(30, { error: 'The Travel Table is for women 30 and over' }).max(99),
   bio: z.string().max(200, 'Bio must be 200 characters or less').optional(),
   languages: z.array(z.string()).optional(),
@@ -38,6 +38,7 @@ export default function Step1Page() {
     control,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -45,6 +46,7 @@ export default function Step1Page() {
   })
 
   const bio = watch('bio', '')
+  const location = watch('location', '')
 
   // Load saved progress
   useEffect(() => {
@@ -71,6 +73,27 @@ export default function Step1Page() {
     load()
   }, [setValue])
 
+  async function savePartial(destination: string) {
+    const values = getValues()
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push(destination); return }
+
+    await supabase
+      .from('profiles')
+      .update({
+        display_name: values.display_name || null,
+        location: values.location || null,
+        age: values.age || null,
+        bio: values.bio || null,
+        languages: values.languages || [],
+        avatar_url: values.avatar_url || null,
+      })
+      .eq('id', user.id)
+
+    router.push(destination)
+  }
+
   async function onSubmit(data: FormData) {
     setSaving(true)
     const supabase = createClient()
@@ -94,14 +117,18 @@ export default function Step1Page() {
 
   return (
     <div className="flex flex-col gap-8">
-      <StepIndicator currentStep={1} totalSteps={4} />
+      <StepIndicator
+        currentStep={1}
+        totalSteps={4}
+        onNext={() => savePartial('/onboarding/step-2')}
+      />
 
       <div>
         <h1
           className="text-3xl font-light text-[var(--text)] mb-2"
           style={{ fontFamily: 'var(--font-cormorant), "Cormorant Garamond", serif' }}
         >
-          Let's set up your profile
+          Let&apos;s set up your profile
         </h1>
         <p className="text-sm text-[var(--text-mid)]">Tell us a little about yourself</p>
       </div>
@@ -132,12 +159,23 @@ export default function Step1Page() {
           {...register('display_name')}
         />
 
-        <Input
-          label="Location"
-          placeholder="City, Country"
-          error={errors.location?.message}
-          {...register('location')}
-        />
+        <div className="flex flex-col gap-2">
+          <Input
+            label="Where are you based?"
+            placeholder="City, Country"
+            error={errors.location?.message}
+            {...register('location')}
+          />
+          {location !== 'Remote' && (
+            <button
+              type="button"
+              onClick={() => setValue('location', 'Remote', { shouldValidate: true })}
+              className="self-start text-xs text-[var(--pink)] border border-[var(--pink-mid)] rounded-full px-3 py-1 hover:bg-[var(--pink-light)] transition-colors"
+            >
+              I&apos;m remote / no fixed base
+            </button>
+          )}
+        </div>
 
         <Input
           label="Age"

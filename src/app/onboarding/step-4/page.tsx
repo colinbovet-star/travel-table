@@ -101,7 +101,11 @@ export default function Step4Page() {
 
   return (
     <div className="flex flex-col gap-8">
-      <StepIndicator currentStep={4} totalSteps={4} />
+      <StepIndicator
+        currentStep={4}
+        totalSteps={4}
+        onPrev={() => router.push('/onboarding/step-3')}
+      />
 
       <div>
         <h1

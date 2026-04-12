@@ -46,6 +46,7 @@ export default function Step3Page() {
     control,
     watch,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -86,6 +87,27 @@ export default function Step3Page() {
     load()
   }, [setValue])
 
+  async function savePartial(destination: string) {
+    const values = getValues()
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push(destination); return }
+
+    await supabase
+      .from('profiles')
+      .update({
+        dream_regions: values.dream_regions || [],
+        travel_months: values.travel_months || [],
+        upcoming_trip_destination: values.has_upcoming_trip ? values.upcoming_trip_destination || null : null,
+        upcoming_trip_start: values.has_upcoming_trip ? values.upcoming_trip_start || null : null,
+        upcoming_trip_end: values.has_upcoming_trip ? values.upcoming_trip_end || null : null,
+        open_to_buddy: values.open_to_buddy,
+      })
+      .eq('id', user.id)
+
+    router.push(destination)
+  }
+
   async function onSubmit(data: FormData) {
     setSaving(true)
     const supabase = createClient()
@@ -109,7 +131,12 @@ export default function Step3Page() {
 
   return (
     <div className="flex flex-col gap-8">
-      <StepIndicator currentStep={3} totalSteps={4} />
+      <StepIndicator
+        currentStep={3}
+        totalSteps={4}
+        onPrev={() => savePartial('/onboarding/step-2')}
+        onNext={() => savePartial('/onboarding/step-4')}
+      />
 
       <div>
         <h1
