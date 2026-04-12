@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { uploadToCloudinary } from '@/lib/cloudinary'
 
 export async function POST(req: NextRequest) {
   // Auth check — only signed-in users can upload
@@ -26,13 +25,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File too large (max 5MB)' }, { status: 400 })
   }
 
+  const ext = file.type === 'image/webp' ? 'webp' : file.type === 'image/png' ? 'png' : 'jpg'
+  const path = `${user.id}/${Date.now()}.${ext}`
   const buffer = Buffer.from(await file.arrayBuffer())
-  const filename = `${user.id}-${Date.now()}`
 
-  try {
-    const { url } = await uploadToCloudinary(buffer, filename)
-    return NextResponse.json({ url })
-  } catch {
+  const { error } = await supabase.storage
+    .from('avatars')
+    .upload(path, buffer, {
+      contentType: file.type,
+      upsert: true,
+    })
+
+  if (error) {
+    console.error('Supabase storage upload error:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(path)
+
+  return NextResponse.json({ url: publicUrl })
 }
