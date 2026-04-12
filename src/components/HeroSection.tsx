@@ -1,6 +1,56 @@
 export default function HeroSection() {
   return (
     <section className="hero">
+      {/* Animated globe background */}
+      <svg
+        className="hero-globe"
+        viewBox="0 0 500 500"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <clipPath id="globe-clip">
+            <circle cx="250" cy="250" r="220" />
+          </clipPath>
+          <radialGradient id="globe-fade" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="80%" stopColor="transparent" />
+            <stop offset="100%" stopColor="var(--cream, #faf8f5)" />
+          </radialGradient>
+        </defs>
+
+        {/* Outer circle */}
+        <circle cx="250" cy="250" r="220" fill="none" stroke="var(--pink)" strokeWidth="1" strokeOpacity="0.25" />
+
+        {/* Latitude lines */}
+        <g clipPath="url(#globe-clip)" fill="none" stroke="var(--pink)" strokeWidth="0.8" strokeOpacity="0.18">
+          {[-66, -40, -20, 0, 20, 40, 66].map((lat) => {
+            const y = 250 + (lat / 90) * 220;
+            const r = Math.sqrt(Math.max(0, 220 * 220 - (y - 250) * (y - 250)));
+            return <ellipse key={lat} cx="250" cy={y} rx={r} ry={r * 0.18} />;
+          })}
+        </g>
+
+        {/* Longitude lines — animated slow rotation */}
+        <g clipPath="url(#globe-clip)" fill="none" stroke="var(--pink)" strokeWidth="0.8" strokeOpacity="0.18">
+          <animateTransform
+            attributeName="transform"
+            attributeType="XML"
+            type="rotate"
+            from="0 250 250"
+            to="360 250 250"
+            dur="32s"
+            repeatCount="indefinite"
+          />
+          {[0, 30, 60, 90, 120, 150].map((lng) => (
+            <ellipse key={lng} cx="250" cy="250" rx="220" ry={220 * Math.abs(Math.cos((lng * Math.PI) / 180)) || 8} transform={`rotate(${lng} 250 250)`} />
+          ))}
+        </g>
+
+        {/* Fade vignette so it bleeds into the background */}
+        <circle cx="250" cy="250" r="220" fill="url(#globe-fade)" />
+      </svg>
+
       <div className="hero-content">
         <div className="hero-eyebrow">Travel Table</div>
         <h1>
@@ -8,7 +58,7 @@ export default function HeroSection() {
           <br />
           <em>travel crew.</em>
           <br />
-          Explore together.
+          Discover the world.
         </h1>
         <p className="hero-sub">
           A virtual travel club for women 30+ who are done waiting for the
