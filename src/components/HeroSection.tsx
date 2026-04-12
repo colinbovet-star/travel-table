@@ -47,7 +47,7 @@ export default function HeroSection() {
         <h1>
           Find your
           <br />
-          <em>travel companions.</em>
+          <em>travel crew.</em>
           <br />
           Discover the world.
         </h1>
