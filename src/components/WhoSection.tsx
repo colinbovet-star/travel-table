@@ -13,12 +13,12 @@ export default function WhoSection() {
           </h2>
           <p className="who-body">
             Whether you&apos;ve been solo travelling for years or you&apos;re
-            just re-entering the world of adventure — you deserve a community
+            just re-entering the world of adventure, you deserve a community
             that gets it.
           </p>
           <ul className="who-list">
             <li>You love to travel but your friends can&apos;t always come</li>
-            <li>You want a companion with the same energy, not just anyone</li>
+            <li>You want companions with the same energy, not just anyone</li>
             <li>You&apos;re 30+ and done compromising on how you travel</li>
             <li>You want real friendships, not just an app match</li>
           </ul>

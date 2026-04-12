@@ -35,7 +35,7 @@ export default function CallsSection() {
             <div className="call-item">
               <div className="call-dot" style={{ background: "var(--green)" }} />
               <span className="call-topic">
-                Find your travel buddy — open mixer
+                Find your travel companions, open mixer
               </span>
               <span className="call-date">Every Thursday</span>
             </div>

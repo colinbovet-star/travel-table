@@ -16,7 +16,7 @@ export default function HowSection() {
             <div className="step-title">Create your profile</div>
             <div className="step-body">
               Share your travel style, dream destinations, and when you&apos;re
-              free to go. Active explorer or slow traveller — we want the real
+              free to go. Active explorer or slow traveller, we want the real
               you.
             </div>
             <span className="step-tag">5 minutes</span>
@@ -42,10 +42,10 @@ export default function HowSection() {
           </div>
           <div className="step fade-up">
             <div className="step-num">04</div>
-            <div className="step-title">Find your travel crew</div>
+            <div className="step-title">Find your travel companions</div>
             <div className="step-body">
               The real magic happens when strangers become friends. Plan your
-              trip together — or just cheer each other on.
+              trip together, or just cheer each other on.
             </div>
             <span className="step-tag">The good part</span>
           </div>

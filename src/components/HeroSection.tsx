@@ -47,13 +47,13 @@ export default function HeroSection() {
         <h1>
           Find your
           <br />
-          <em>travel crew.</em>
+          <em>travel companions.</em>
           <br />
           Discover the world.
         </h1>
         <p className="hero-sub">
           A virtual travel club for women 30+ who are done waiting for the
-          &ldquo;perfect&rdquo; moment — and the perfect companion. Meet your
+          &ldquo;perfect&rdquo; moment, and the right companions. Meet your
           people. Plan your next adventure.
         </p>
         <div className="hero-actions">
