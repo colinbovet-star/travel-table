@@ -19,7 +19,6 @@ const schema = z.object({
   bio: z.string().max(200, 'Bio must be 200 characters or less').optional(),
   languages: z.array(z.string()).optional(),
   avatar_url: z.string().nullable().optional(),
-  photo_urls: z.array(z.string()).optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -32,7 +31,6 @@ const LANGUAGE_OPTIONS = [
 export default function Step1Page() {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
-  const [extraPhotos, setExtraPhotos] = useState<(string | null)[]>([null, null])
 
   const {
     register,
@@ -43,7 +41,7 @@ export default function Step1Page() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { languages: [], photo_urls: [] },
+    defaultValues: { languages: [] },
   })
 
   const bio = watch('bio', '')
@@ -57,7 +55,7 @@ export default function Step1Page() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('display_name, location, age, bio, languages, avatar_url, photo_urls')
+        .select('display_name, location, age, bio, languages, avatar_url')
         .eq('id', user.id)
         .single()
 
@@ -68,10 +66,6 @@ export default function Step1Page() {
         if (data.bio) setValue('bio', data.bio)
         if (data.languages) setValue('languages', data.languages)
         if (data.avatar_url) setValue('avatar_url', data.avatar_url)
-        if (data.photo_urls?.length) {
-          setValue('photo_urls', data.photo_urls)
-          setExtraPhotos([data.photo_urls[0] ?? null, data.photo_urls[1] ?? null])
-        }
       }
     }
     load()
@@ -83,8 +77,6 @@ export default function Step1Page() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const photoUrls = extraPhotos.filter(Boolean) as string[]
-
     await supabase
       .from('profiles')
       .update({
@@ -94,7 +86,6 @@ export default function Step1Page() {
         bio: data.bio || null,
         languages: data.languages || [],
         avatar_url: data.avatar_url || null,
-        photo_urls: photoUrls,
       })
       .eq('id', user.id)
 
@@ -116,38 +107,22 @@ export default function Step1Page() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        {/* Photos */}
+        {/* Photo */}
         <div className="flex flex-col gap-3">
           <p className="text-sm font-medium text-[var(--text)]">
             Profile photo <span className="text-[var(--text-light)] font-normal">(recommended)</span>
           </p>
-          <div className="flex gap-4 items-end">
-            <Controller
-              name="avatar_url"
-              control={control}
-              render={({ field }) => (
-                <PhotoUpload
-                  value={field.value ?? null}
-                  onChange={field.onChange}
-                  circular
-                />
-              )}
-            />
-            <div className="flex gap-3">
-              {[0, 1].map((i) => (
-                <PhotoUpload
-                  key={i}
-                  value={extraPhotos[i]}
-                  onChange={(url) => {
-                    const updated = [...extraPhotos]
-                    updated[i] = url
-                    setExtraPhotos(updated)
-                  }}
-                  hint="Optional"
-                />
-              ))}
-            </div>
-          </div>
+          <Controller
+            name="avatar_url"
+            control={control}
+            render={({ field }) => (
+              <PhotoUpload
+                value={field.value ?? null}
+                onChange={field.onChange}
+                circular
+              />
+            )}
+          />
         </div>
 
         <Input
