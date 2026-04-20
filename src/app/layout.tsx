@@ -1,24 +1,25 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, DM_Sans } from "next/font/google";
+import { Playfair_Display, Montserrat } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 
-const cormorant = Cormorant_Garamond({
-  variable: "--font-cormorant",
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
-  title: "Travel Table — Modern Round Table",
+  title: "Dating Table — Find Your Person",
   description:
-    "A virtual travel club for women 30+ who love to explore. Find your travel crew, join weekly calls, and never travel alone again.",
+    "A curated community for single women ready to date with intention. Join a Dating Table and take charge of your love life.",
 };
 
 export default function RootLayout({
@@ -27,8 +28,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cormorant.variable} ${dmSans.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${playfair.variable} ${montserrat.variable}`}>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }

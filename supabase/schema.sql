@@ -1,48 +1,83 @@
 -- ============================================================
--- Travel Table · profiles table + RLS + trigger
--- Run this in your Supabase SQL editor
+-- Dating Table — members + referrals schema
+-- Run in the Supabase SQL editor
 -- ============================================================
 
-create table profiles (
-  id uuid references auth.users(id) primary key,
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
+-- MEMBERS
+create table if not exists members (
+  id uuid references auth.users(id) on delete cascade primary key,
 
-  -- Step 1
-  display_name text,
-  location text,
+  -- Contact
+  email text,
+  first_name text,
+  phone text,
+
+  -- Referral origin
+  referral_source text,           -- Instagram, Referral, Friend, Matchmaker, Other
+  referred_by_name text,
+  referred_by_user_id uuid,       -- FK added below after table exists
+
+  -- Membership
+  member_type text default 'intro' check (member_type in ('intro', 'member', 'vip')),
+  profile_completion integer default 0,
+  cinqe_opt_in boolean default false,
+
+  -- Step 1 — About You
   age integer,
-  bio text,
-  languages text[],
-  avatar_url text,
-  photo_urls text[],
+  city text,
+  state text,
+  relationship_status text,
+  headshot_url text,
+  photo_2_url text,
+  photo_3_url text,
+  how_long_single text,
+  dating_activity text,
+  exciting_about_dating text,
+  hoping_to_gain text[],
+  topics_to_discuss text,
 
-  -- Step 2
-  travel_style_score integer check (travel_style_score between 1 and 5),
-  solo_comfort text,
-  budget_range text,
-  trip_type_tags text[],
-  looking_for text[],
-  travel_frequency text,
-  group_size_pref text,
+  -- Step 2 — Who You're Open to Meeting
+  age_min integer,
+  age_max integer,
+  travel_distance text,
+  open_to_relocate text,
+  want_marriage text,
+  want_children text,
+  has_children boolean,
+  religion text,
+  religion_importance text,
+  politics text,
+  deal_breakers text,
 
-  -- Step 3
-  dream_regions text[],
-  travel_months text[],
-  upcoming_trip_destination text,
-  upcoming_trip_start text,
-  upcoming_trip_end text,
-  open_to_buddy boolean default true,
+  -- Step 3 — Table Preferences
+  table_experiences text[],
 
-  -- Step 4 / prefs
-  weekly_call_emails boolean default true,
-  discovery_emails boolean default true,
+  -- Step 4 — Membership + Community
+  membership_interest text[],
+  cinqe_interest text,
+  instagram_handle text,
 
   -- Meta
-  onboarding_completed boolean default false
+  onboarding_completed boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
--- Keep updated_at current
+-- Self-referential FK (safe to add after table creation)
+alter table members
+  add constraint members_referred_by_fk
+  foreign key (referred_by_user_id) references members(id);
+
+-- REFERRALS
+create table if not exists referrals (
+  id uuid default gen_random_uuid() primary key,
+  referrer_id uuid references members(id) on delete cascade not null,
+  invitee_email text not null,
+  status text default 'Invited' check (status in ('Invited', 'Signed Up', 'Completed')),
+  created_at timestamptz default now()
+);
+
+-- updated_at trigger
 create or replace function update_updated_at()
 returns trigger language plpgsql as $$
 begin
@@ -51,35 +86,87 @@ begin
 end;
 $$;
 
-create trigger profiles_updated_at
-  before update on profiles
+drop trigger if exists members_updated_at on members;
+create trigger members_updated_at
+  before update on members
   for each row execute procedure update_updated_at();
 
--- Auto-create empty profile row on new user signup
+-- Auto-create member row on auth signup, pulling metadata passed via signInWithOtp
 create or replace function handle_new_user()
 returns trigger language plpgsql security definer as $$
 begin
-  insert into public.profiles (id, display_name)
+  insert into public.members (id, email, first_name)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'first_name', new.raw_user_meta_data->>'full_name')
-  );
+    new.email,
+    coalesce(new.raw_user_meta_data->>'first_name', null)
+  )
+  on conflict (id) do nothing;
   return new;
 end;
 $$;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure handle_new_user();
 
 -- RLS
-alter table profiles enable row level security;
+alter table members enable row level security;
+alter table referrals enable row level security;
 
-create policy "Users can view own profile"
-  on profiles for select using (auth.uid() = id);
+drop policy if exists "members_select_own" on members;
+create policy "members_select_own" on members
+  for select using (auth.uid() = id);
 
-create policy "Users can update own profile"
-  on profiles for update using (auth.uid() = id);
+drop policy if exists "members_update_own" on members;
+create policy "members_update_own" on members
+  for update using (auth.uid() = id);
 
-create policy "Users can insert own profile"
-  on profiles for insert with check (auth.uid() = id);
+drop policy if exists "members_insert_own" on members;
+create policy "members_insert_own" on members
+  for insert with check (auth.uid() = id);
+
+-- Directory: completed members can view other completed members
+drop policy if exists "members_select_directory" on members;
+create policy "members_select_directory" on members
+  for select using (
+    onboarding_completed = true
+    and exists (
+      select 1 from members m2
+      where m2.id = auth.uid() and m2.onboarding_completed = true
+    )
+  );
+
+drop policy if exists "referrals_select_own" on referrals;
+create policy "referrals_select_own" on referrals
+  for select using (auth.uid() = referrer_id);
+
+drop policy if exists "referrals_insert_own" on referrals;
+create policy "referrals_insert_own" on referrals
+  for insert with check (auth.uid() = referrer_id);
+
+-- ============================================================
+-- Storage: create "member-photos" bucket in the Supabase
+-- dashboard (Storage tab, Public = true), then run these:
+-- ============================================================
+create policy "user_upload_own_photos"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'member-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "user_update_own_photos"
+  on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'member-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "public_read_photos"
+  on storage.objects for select
+  to public
+  using (bucket_id = 'member-photos');

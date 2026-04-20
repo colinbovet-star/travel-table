@@ -26,7 +26,7 @@ export default function Toggle({ checked, onChange, label, description, id }: To
         />
         <div
           className={`w-10 h-6 rounded-full transition-colors duration-200 ${
-            checked ? 'bg-[var(--green)]' : 'bg-[var(--cream-dark)] border border-[var(--pink-mid)]'
+            checked ? 'bg-[var(--blush)]' : 'bg-[var(--cream-dark)] border border-[var(--tan)]'
           }`}
         >
           <span

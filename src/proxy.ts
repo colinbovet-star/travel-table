@@ -4,12 +4,10 @@ import { createServerClient } from '@supabase/ssr'
 export async function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
 
-  // If Supabase env vars aren't configured yet, pass through without auth checks
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
     return NextResponse.next({ request: req })
   }
 
-  // Build a Supabase client that can read/write cookies in the proxy context
   let response = NextResponse.next({ request: req })
 
   const supabase = createServerClient(
@@ -31,46 +29,42 @@ export async function proxy(req: NextRequest) {
     }
   )
 
-  // Refresh the session — important to keep it alive
   const { data: { user } } = await supabase.auth.getUser()
 
   const isAuthRoute = path.startsWith('/auth')
-  const isOnboardingRoute = path.startsWith('/onboarding')
-  const isDashboardRoute = path.startsWith('/dashboard')
+  const isProfileBuilder = path.startsWith('/profile-builder')
+  const isDashboard = path.startsWith('/dashboard')
+  const isDirectory = path.startsWith('/directory')
 
-  // Not logged in → redirect to signup when trying to access protected routes
-  if (!user && (isOnboardingRoute || isDashboardRoute)) {
+  // Unauthenticated → redirect to signup for protected routes
+  if (!user && (isProfileBuilder || isDashboard || isDirectory)) {
     return NextResponse.redirect(new URL('/auth/signup', req.nextUrl))
   }
 
-  // Logged in → check onboarding status
   if (user) {
     // Redirect away from auth pages
     if (isAuthRoute) {
-      // Check onboarding_completed
-      const { data: profile } = await supabase
-        .from('profiles')
+      const { data: member } = await supabase
+        .from('members')
         .select('onboarding_completed')
         .eq('id', user.id)
         .single()
 
-      if (profile?.onboarding_completed) {
-        return NextResponse.redirect(new URL('/dashboard', req.nextUrl))
-      } else {
-        return NextResponse.redirect(new URL('/onboarding/step-1', req.nextUrl))
-      }
+      return NextResponse.redirect(
+        new URL(member?.onboarding_completed ? '/dashboard' : '/profile-builder', req.nextUrl)
+      )
     }
 
-    // Logged in but onboarding incomplete → redirect to onboarding
-    if (isDashboardRoute) {
-      const { data: profile } = await supabase
-        .from('profiles')
+    // Redirect to profile builder if onboarding not done
+    if (isDashboard || isDirectory) {
+      const { data: member } = await supabase
+        .from('members')
         .select('onboarding_completed')
         .eq('id', user.id)
         .single()
 
-      if (!profile?.onboarding_completed) {
-        return NextResponse.redirect(new URL('/onboarding/step-1', req.nextUrl))
+      if (!member?.onboarding_completed) {
+        return NextResponse.redirect(new URL('/profile-builder', req.nextUrl))
       }
     }
   }
@@ -81,7 +75,8 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     '/auth/:path*',
-    '/onboarding/:path*',
+    '/profile-builder/:path*',
     '/dashboard/:path*',
+    '/directory/:path*',
   ],
 }
